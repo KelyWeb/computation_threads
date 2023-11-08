@@ -3,6 +3,12 @@ name = "computation_threads"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "lib_m"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bin_m"
+path = "src/bin.rs"
 
 [dependencies]
