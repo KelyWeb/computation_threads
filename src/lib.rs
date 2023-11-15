@@ -1,4 +1,4 @@
-pub fn parallel_computing<T: Clone + Send + 'static, R: Send + 'static>(
+pub fn parallel_computing<T: Send + 'static, R: Send + 'static>(
     items: Vec<T>,
     proc: fn(T) -> R,
 ) -> Vec<R> {
@@ -7,13 +7,12 @@ pub fn parallel_computing<T: Clone + Send + 'static, R: Send + 'static>(
 
     if items.len() > threshold {
         let mut threads_pool = Vec::new();
-        let chunks = items.chunks(threshold);
+        let chunks = split_to(items, threshold);
 
         for chunk in chunks {
-            let chunk_clone = chunk.to_vec();
             threads_pool.push(std::thread::spawn(move || -> Vec<R> {
                 let mut chunk_interm_result = Vec::new();
-                for item in chunk_clone {
+                for item in chunk {
                     chunk_interm_result.push(proc(item));
                 }
                 chunk_interm_result
@@ -31,6 +30,21 @@ pub fn parallel_computing<T: Clone + Send + 'static, R: Send + 'static>(
     }
     result
 }
+
+fn split_to<T>(mut items: Vec<T>, threshold: usize) -> Vec<Vec<T>> {
+
+    let mut result = Vec::new();
+
+    if items.len() <= threshold {
+        result.push(items)
+    } else {
+        while !items.is_empty() {
+            let chunk: Vec<T> = items.drain(..threshold.min(items.len())).collect();
+            result.push(chunk);
+        }
+    }
+    result
+}  
 
 #[cfg(test)]
 #[test]
